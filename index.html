@@ -1,0 +1,172 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canlı Sensor Verileri</title>
+    <style>
+        /* Genel Sayfa Ayarları */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        h2 {
+            color: #2980b9;
+            margin-top: 20px;
+            border-bottom: 2px solid #2980b9;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+
+        .data-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .data-container p {
+            font-size: 1.1em;
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .data-container p span {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        /* Esnek düzen için container */
+        .container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .column {
+            flex: 1;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 400px;
+        }
+
+        /* Küçük ekranlarda kolonlar alt alta sıralanır */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+        }
+
+    </style>
+    <script>
+        // API'den her saniye veri çekmek için fonksiyon
+        async function fetchSensorData() {
+            try {
+                const response = await fetch('http://maveratelemetryapp.somee.com/api/sensordata/latest');
+                const result = await response.json();
+
+                console.log(result); // Gelen tüm JSON objesini konsolda gör
+
+                // Voltaj verilerini ekrana yazdır
+                for (let i = 1; i <= 20; i++) {
+                    document.getElementById(`Voltage${i}`).innerText = result[`voltage${i}`];
+                }
+                document.getElementById('VoltageToplam').innerText = result.voltageToplam;
+
+                // Sıcaklık verilerini ekrana yazdır
+                for (let i = 1; i <= 6; i++) {
+                    document.getElementById(`Sicaklik_${i}`).innerText = result[`sicaklik_${i}`];
+                }
+
+                // Diğer sensör değerlerini ekrana yazdır
+                document.getElementById('Current').innerText = result.current;
+                document.getElementById('Hiz').innerText = result.hiz;
+                document.getElementById('RemainingEnergy').innerText = result.remainingEnergy;
+
+            } catch (error) {
+                console.error("Veri çekilirken hata oluştu:", error);
+            }
+        }
+
+        // Her saniye veri çekmek için setInterval kullanıyoruz
+        setInterval(fetchSensorData, 1000);  // 1000 ms = 1 saniye
+    </script>
+</head>
+<body>
+    <h1>Canlı Sensor Verileri</h1>
+
+    <div class="container">
+        <!-- Solda Voltaj 1-10 -->
+        <div class="column">
+            <h2>Voltage 1-10</h2>
+            <!-- Voltaj 1-10 Verileri -->
+            <p>Voltage 1: <span id="Voltage1"></span></p>
+            <p>Voltage 2: <span id="Voltage2"></span></p>
+            <p>Voltage 3: <span id="Voltage3"></span></p>
+            <p>Voltage 4: <span id="Voltage4"></span></p>
+            <p>Voltage 5: <span id="Voltage5"></span></p>
+            <p>Voltage 6: <span id="Voltage6"></span></p>
+            <p>Voltage 7: <span id="Voltage7"></span></p>
+            <p>Voltage 8: <span id="Voltage8"></span></p>
+            <p>Voltage 9: <span id="Voltage9"></span></p>
+            <p>Voltage 10: <span id="Voltage10"></span></p>
+        </div>
+
+        <!-- Ortada Voltaj 11-20 -->
+        <div class="column">
+            <h2>Voltage 11-20</h2>
+            <!-- Voltaj 11-20 Verileri -->
+            <p>Voltage 11: <span id="Voltage11"></span></p>
+            <p>Voltage 12: <span id="Voltage12"></span></p>
+            <p>Voltage 13: <span id="Voltage13"></span></p>
+            <p>Voltage 14: <span id="Voltage14"></span></p>
+            <p>Voltage 15: <span id="Voltage15"></span></p>
+            <p>Voltage 16: <span id="Voltage16"></span></p>
+            <p>Voltage 17: <span id="Voltage17"></span></p>
+            <p>Voltage 18: <span id="Voltage18"></span></p>
+            <p>Voltage 19: <span id="Voltage19"></span></p>
+            <p>Voltage 20: <span id="Voltage20"></span></p>
+            <p>Voltage Toplam: <span id="VoltageToplam"></span></p>
+        </div>
+
+        <!-- Sağda Sıcaklıklar ve Diğer Veriler -->
+        <div class="column">
+            <h2>Sıcaklık Values</h2>
+            <!-- Sıcaklık verileri -->
+            <p>Sıcaklık 1: <span id="Sicaklik_1"></span></p>
+            <p>Sıcaklık 2: <span id="Sicaklik_2"></span></p>
+            <p>Sıcaklık 3: <span id="Sicaklik_3"></span></p>
+            <p>Sıcaklık 4: <span id="Sicaklik_4"></span></p>
+            <p>Sıcaklık 5: <span id="Sicaklik_5"></span></p>
+            <p>Sıcaklık 6: <span id="Sicaklik_6"></span></p>
+
+            <h2>Diğer Sensör Değerleri</h2>
+            <!-- Diğer sensör değerleri -->
+            <p>Akım: <span id="Current"></span></p>
+            <p>Hız: <span id="Hiz"></span></p>
+            <p>Kalan Enerji: <span id="RemainingEnergy"></span></p>
+        </div>
+    </div>
+</body>
+</html>
