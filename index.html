@@ -1,172 +1,437 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canlı Sensor Verileri</title>
-    <style>
-        /* Genel Sayfa Ayarları */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-size: 2em;
-        }
-
-        h2 {
-            color: #2980b9;
-            margin-top: 20px;
-            border-bottom: 2px solid #2980b9;
-            padding-bottom: 5px;
-            margin-bottom: 10px;
-            font-size: 1.5em;
-        }
-
-        .data-container {
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .data-container p {
-            font-size: 1.1em;
-            margin: 8px 0;
-            line-height: 1.5;
-        }
-
-        .data-container p span {
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        /* Esnek düzen için container */
-        .container {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        .column {
-            flex: 1;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            max-width: 400px;
-        }
-
-        /* Küçük ekranlarda kolonlar alt alta sıralanır */
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-        }
-
-    </style>
-    <script>
-        // API'den her saniye veri çekmek için fonksiyon
-        async function fetchSensorData() {
-            try {
-                const response = await fetch('https://maveratelemetryapp.somee.com/api/sensordata/latest');
-                const result = await response.json();
-
-                console.log(result); // Gelen tüm JSON objesini konsolda gör
-
-                // Voltaj verilerini ekrana yazdır
-                for (let i = 1; i <= 20; i++) {
-                    document.getElementById(`Voltage${i}`).innerText = result[`voltage${i}`];
-                }
-                document.getElementById('VoltageToplam').innerText = result.voltageToplam;
-
-                // Sıcaklık verilerini ekrana yazdır
-                for (let i = 1; i <= 6; i++) {
-                    document.getElementById(`Sicaklik_${i}`).innerText = result[`sicaklik_${i}`];
-                }
-
-                // Diğer sensör değerlerini ekrana yazdır
-                document.getElementById('Current').innerText = result.current;
-                document.getElementById('Hiz').innerText = result.hiz;
-                document.getElementById('RemainingEnergy').innerText = result.remainingEnergy;
-
-            } catch (error) {
-                console.error("Veri çekilirken hata oluştu:", error);
-            }
-        }
-
-        // Her saniye veri çekmek için setInterval kullanıyoruz
-        setInterval(fetchSensorData, 1000);  // 1000 ms = 1 saniye
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Canlı Sensor Verileri</title>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- jsPDF ve AutoTable -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+  <!-- SheetJS for Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    /* Genel Sayfa Ayarları */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      font-size: 2em;
+    }
+    h2 {
+      color: #2980b9;
+      margin-top: 20px;
+      border-bottom: 2px solid #2980b9;
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+      font-size: 1.5em;
+    }
+    .data-container {
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .data-container p {
+      font-size: 1.1em;
+      margin: 8px 0;
+      line-height: 1.5;
+    }
+    .data-container p span {
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    /* Esnek düzen için container */
+    .container {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      width: 100%;
+      max-width: 1200px;
+    }
+    .column {
+      flex: 1;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      max-width: 400px;
+    }
+    /* Küçük ekranlarda kolonlar alt alta sıralanır */
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+    }
+    /* Buton ve format seçenekleri */
+    .btn-container {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .format-options {
+      margin-bottom: 10px;
+    }
+    .format-options label {
+      margin-right: 10px;
+      font-size: 1em;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 15px;
+      font-size: 1em;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background-color: #2980b9;
+      color: white;
+    }
+    button:hover {
+      background-color: #1b5f7a;
+    }
+  </style>
 </head>
 <body>
-    <h1>Canlı Sensor Verileri</h1>
+  <h1>Canlı Sensor Verileri</h1>
 
-    <div class="container">
-        <!-- Solda Voltaj 1-10 -->
-        <div class="column">
-            <h2>Voltage 1-10</h2>
-            <!-- Voltaj 1-10 Verileri -->
-            <p>Voltage 1: <span id="Voltage1"></span></p>
-            <p>Voltage 2: <span id="Voltage2"></span></p>
-            <p>Voltage 3: <span id="Voltage3"></span></p>
-            <p>Voltage 4: <span id="Voltage4"></span></p>
-            <p>Voltage 5: <span id="Voltage5"></span></p>
-            <p>Voltage 6: <span id="Voltage6"></span></p>
-            <p>Voltage 7: <span id="Voltage7"></span></p>
-            <p>Voltage 8: <span id="Voltage8"></span></p>
-            <p>Voltage 9: <span id="Voltage9"></span></p>
-            <p>Voltage 10: <span id="Voltage10"></span></p>
-        </div>
-
-        <!-- Ortada Voltaj 11-20 -->
-        <div class="column">
-            <h2>Voltage 11-20</h2>
-            <!-- Voltaj 11-20 Verileri -->
-            <p>Voltage 11: <span id="Voltage11"></span></p>
-            <p>Voltage 12: <span id="Voltage12"></span></p>
-            <p>Voltage 13: <span id="Voltage13"></span></p>
-            <p>Voltage 14: <span id="Voltage14"></span></p>
-            <p>Voltage 15: <span id="Voltage15"></span></p>
-            <p>Voltage 16: <span id="Voltage16"></span></p>
-            <p>Voltage 17: <span id="Voltage17"></span></p>
-            <p>Voltage 18: <span id="Voltage18"></span></p>
-            <p>Voltage 19: <span id="Voltage19"></span></p>
-            <p>Voltage 20: <span id="Voltage20"></span></p>
-            <p>Voltage Toplam: <span id="VoltageToplam"></span></p>
-        </div>
-
-        <!-- Sağda Sıcaklıklar ve Diğer Veriler -->
-        <div class="column">
-            <h2>Sıcaklık Values</h2>
-            <!-- Sıcaklık verileri -->
-            <p>Sıcaklık 1: <span id="Sicaklik_1"></span></p>
-            <p>Sıcaklık 2: <span id="Sicaklik_2"></span></p>
-            <p>Sıcaklık 3: <span id="Sicaklik_3"></span></p>
-            <p>Sıcaklık 4: <span id="Sicaklik_4"></span></p>
-            <p>Sıcaklık 5: <span id="Sicaklik_5"></span></p>
-            <p>Sıcaklık 6: <span id="Sicaklik_6"></span></p>
-
-            <h2>Diğer Sensör Değerleri</h2>
-            <!-- Diğer sensör değerleri -->
-            <p>Akım: <span id="Current"></span></p>
-            <p>Hız: <span id="Hiz"></span></p>
-            <p>Kalan Enerji: <span id="RemainingEnergy"></span></p>
-        </div>
+  <div class="btn-container">
+    <div class="format-options">
+      <label><input type="checkbox" id="csvOption" checked /> CSV</label>
+      <label><input type="checkbox" id="pdfOption" /> PDF</label>
+      <label><input type="checkbox" id="txtOption" /> TXT</label>
+      <label><input type="checkbox" id="excelOption" /> Excel</label>
     </div>
+    <button id="toggleRecordingBtn">Kayıt Başlat</button>
+  </div>
+
+  <div class="container">
+    <!-- Solda Voltaj 1-10 -->
+    <div class="column">
+      <h2>Voltage 1-10</h2>
+      <p>Voltage 1: <span id="Voltage1"></span></p>
+      <p>Voltage 2: <span id="Voltage2"></span></p>
+      <p>Voltage 3: <span id="Voltage3"></span></p>
+      <p>Voltage 4: <span id="Voltage4"></span></p>
+      <p>Voltage 5: <span id="Voltage5"></span></p>
+      <p>Voltage 6: <span id="Voltage6"></span></p>
+      <p>Voltage 7: <span id="Voltage7"></span></p>
+      <p>Voltage 8: <span id="Voltage8"></span></p>
+      <p>Voltage 9: <span id="Voltage9"></span></p>
+      <p>Voltage 10: <span id="Voltage10"></span></p>
+    </div>
+
+    <!-- Ortada Voltaj 11-20 -->
+    <div class="column">
+      <h2>Voltage 11-20</h2>
+      <p>Voltage 11: <span id="Voltage11"></span></p>
+      <p>Voltage 12: <span id="Voltage12"></span></p>
+      <p>Voltage 13: <span id="Voltage13"></span></p>
+      <p>Voltage 14: <span id="Voltage14"></span></p>
+      <p>Voltage 15: <span id="Voltage15"></span></p>
+      <p>Voltage 16: <span id="Voltage16"></span></p>
+      <p>Voltage 17: <span id="Voltage17"></span></p>
+      <p>Voltage 18: <span id="Voltage18"></span></p>
+      <p>Voltage 19: <span id="Voltage19"></span></p>
+      <p>Voltage 20: <span id="Voltage20"></span></p>
+      <p>Voltage Toplam: <span id="VoltageToplam"></span></p>
+    </div>
+
+    <!-- Sağda Sıcaklıklar ve Diğer Veriler -->
+    <div class="column">
+      <h2>Sıcaklık Values</h2>
+      <p>Sıcaklık 1: <span id="Sicaklik_1"></span></p>
+      <p>Sıcaklık 2: <span id="Sicaklik_2"></span></p>
+      <p>Sıcaklık 3: <span id="Sicaklik_3"></span></p>
+      <p>Sıcaklık 4: <span id="Sicaklik_4"></span></p>
+      <p>Sıcaklık 5: <span id="Sicaklik_5"></span></p>
+      <p>Sıcaklık 6: <span id="Sicaklik_6"></span></p>
+
+      <h2>Diğer Sensör Değerleri</h2>
+      <p>Akım: <span id="Current"></span></p>
+      <p>Hız: <span id="Hiz"></span></p>
+      <p>Kalan Enerji: <span id="RemainingEnergy"></span></p>
+    </div>
+  </div>
+
+  <script>
+    // Kayıt formatı seçenekleri ve verilerin tutulacağı diziler
+    let isRecording = false;
+    let csvData = [];
+    let txtTableData = [];
+    let pdfData = [];
+    let excelData = [];
+    let lastID = null;
+    let fileNamePrefix = "";
+    let recordCSV = false, recordPDF = false, recordTXT = false, recordExcel = false;
+
+    // Başlık satırı (header)
+    const headers = [
+      "ID",
+      "Voltage1", "Voltage2", "Voltage3", "Voltage4", "Voltage5",
+      "Voltage6", "Voltage7", "Voltage8", "Voltage9", "Voltage10",
+      "Voltage11", "Voltage12", "Voltage13", "Voltage14", "Voltage15",
+      "Voltage16", "Voltage17", "Voltage18", "Voltage19", "Voltage20",
+      "VoltageToplam",
+      "Sicaklik1", "Sicaklik2", "Sicaklik3", "Sicaklik4", "Sicaklik5", "Sicaklik6",
+      "Current", "Hiz", "RemainingEnergy",
+      "Timestamp"
+    ];
+
+    // Fonksiyon: TXT dosyası için güzel görünümlü ASCII tablo oluşturma
+    function generateAsciiTable(tableData) {
+      const numCols = tableData[0].length;
+      const colWidths = new Array(numCols).fill(0);
+      tableData.forEach(row => {
+        row.forEach((cell, i) => {
+          colWidths[i] = Math.max(colWidths[i], cell.toString().length);
+        });
+      });
+      function formatRow(row) {
+        let line = "|";
+        row.forEach((cell, i) => {
+          const cellStr = cell.toString();
+          line += " " + cellStr.padEnd(colWidths[i]) + " |";
+        });
+        return line;
+      }
+      let sep = "+";
+      colWidths.forEach(width => {
+        sep += "-".repeat(width + 2) + "+";
+      });
+      let result = "";
+      result += sep + "\n";
+      result += formatRow(tableData[0]) + "\n";
+      result += sep + "\n";
+      for (let i = 1; i < tableData.length; i++) {
+        result += formatRow(tableData[i]) + "\n";
+      }
+      result += sep;
+      return result;
+    }
+
+    // Sensor verilerini API'den çekme ve ekrana güncelleme
+    async function fetchSensorData() {
+      try {
+        const response = await fetch('https://maveratelemetryapp.somee.com/api/sensordata/latest');
+        const result = await response.json();
+
+        // Ekranı güncelle
+        document.getElementById("Voltage1").innerText = result.voltage1;
+        document.getElementById("Voltage2").innerText = result.voltage2;
+        document.getElementById("Voltage3").innerText = result.voltage3;
+        document.getElementById("Voltage4").innerText = result.voltage4;
+        document.getElementById("Voltage5").innerText = result.voltage5;
+        document.getElementById("Voltage6").innerText = result.voltage6;
+        document.getElementById("Voltage7").innerText = result.voltage7;
+        document.getElementById("Voltage8").innerText = result.voltage8;
+        document.getElementById("Voltage9").innerText = result.voltage9;
+        document.getElementById("Voltage10").innerText = result.voltage10;
+        document.getElementById("Voltage11").innerText = result.voltage11;
+        document.getElementById("Voltage12").innerText = result.voltage12;
+        document.getElementById("Voltage13").innerText = result.voltage13;
+        document.getElementById("Voltage14").innerText = result.voltage14;
+        document.getElementById("Voltage15").innerText = result.voltage15;
+        document.getElementById("Voltage16").innerText = result.voltage16;
+        document.getElementById("Voltage17").innerText = result.voltage17;
+        document.getElementById("Voltage18").innerText = result.voltage18;
+        document.getElementById("Voltage19").innerText = result.voltage19;
+        document.getElementById("Voltage20").innerText = result.voltage20;
+        document.getElementById("VoltageToplam").innerText = result.voltageToplam;
+
+        document.getElementById("Sicaklik_1").innerText = result.sicaklik_1;
+        document.getElementById("Sicaklik_2").innerText = result.sicaklik_2;
+        document.getElementById("Sicaklik_3").innerText = result.sicaklik_3;
+        document.getElementById("Sicaklik_4").innerText = result.sicaklik_4;
+        document.getElementById("Sicaklik_5").innerText = result.sicaklik_5;
+        document.getElementById("Sicaklik_6").innerText = result.sicaklik_6;
+
+        document.getElementById("Current").innerText = result.current;
+        document.getElementById("Hiz").innerText = result.hiz;
+        document.getElementById("RemainingEnergy").innerText = result.remainingEnergy;
+
+        // Yeni bir veri geldiğinde, kayıt devam ediyorsa dizilere ekleyelim (aynı ID tekrar eklenmesin)
+        if (isRecording && lastID !== result.id) {
+          const now = new Date().toLocaleString();
+          const row = [
+            result.id || "",
+            result.voltage1,
+            result.voltage2,
+            result.voltage3,
+            result.voltage4,
+            result.voltage5,
+            result.voltage6,
+            result.voltage7,
+            result.voltage8,
+            result.voltage9,
+            result.voltage10,
+            result.voltage11,
+            result.voltage12,
+            result.voltage13,
+            result.voltage14,
+            result.voltage15,
+            result.voltage16,
+            result.voltage17,
+            result.voltage18,
+            result.voltage19,
+            result.voltage20,
+            result.voltageToplam,
+            result.sicaklik_1,
+            result.sicaklik_2,
+            result.sicaklik_3,
+            result.sicaklik_4,
+            result.sicaklik_5,
+            result.sicaklik_6,
+            result.current,
+            result.hiz,
+            result.remainingEnergy,
+            now
+          ];
+
+          if (recordCSV) {
+            csvData.push(row.map(item => item === undefined ? "" : item).join(","));
+          }
+          if (recordTXT) {
+            txtTableData.push(row.map(item => item === undefined ? "" : String(item)));
+          }
+          if (recordPDF) {
+            pdfData.push(row);
+          }
+          if (recordExcel) {
+            excelData.push(row);
+          }
+          lastID = result.id;
+        }
+      } catch (error) {
+        console.error("Veri çekilirken hata oluştu:", error);
+      }
+    }
+
+    // Her saniye veriyi güncelle
+    setInterval(fetchSensorData, 1000);
+
+    // Kayıt başlat/durdur butonu işlemleri
+    document.getElementById("toggleRecordingBtn").addEventListener("click", () => {
+      if (!isRecording) {
+        // Kayıt başlamadıysa, seçili formatları kontrol et
+        recordCSV = document.getElementById("csvOption").checked;
+        recordPDF = document.getElementById("pdfOption").checked;
+        recordTXT = document.getElementById("txtOption").checked;
+        recordExcel = document.getElementById("excelOption").checked;
+
+        if (!recordCSV && !recordPDF && !recordTXT && !recordExcel) {
+          Swal.fire("Hata", "Lütfen en az bir format seçiniz!", "error");
+          return;
+        }
+
+        isRecording = true;
+        lastID = null; // ID kontrolünü sıfırla
+
+        // Buton metnini güncelle ve format seçeneklerini devre dışı bırak
+        document.getElementById("toggleRecordingBtn").innerText = "Kayıt Durdur";
+        document.getElementById("csvOption").disabled = true;
+        document.getElementById("pdfOption").disabled = true;
+        document.getElementById("txtOption").disabled = true;
+        document.getElementById("excelOption").disabled = true;
+
+        // Dosya adı için tarih bilgisini al
+        const now = new Date();
+        const gun = String(now.getDate()).padStart(2, "0");
+        const ay = String(now.getMonth() + 1).padStart(2, "0");
+        const saat = String(now.getHours()).padStart(2, "0");
+        const dakika = String(now.getMinutes()).padStart(2, "0");
+        fileNamePrefix = `sensordata_${gun}_${ay}_${saat}_${dakika}`;
+
+        // Seçili formatlar için başlık satırlarını ekle
+        if (recordCSV) {
+          csvData = [];
+          csvData.push(headers.join(","));
+        }
+        if (recordTXT) {
+          txtTableData = [];
+          txtTableData.push(headers);
+        }
+        if (recordPDF) {
+          pdfData = [];
+        }
+        if (recordExcel) {
+          excelData = [];
+          excelData.push(headers);
+        }
+
+        Swal.fire("Başarılı", "Kayıt başlatıldı!", "success");
+      } else {
+        // Kayıt durduruluyor...
+        isRecording = false;
+        document.getElementById("toggleRecordingBtn").innerText = "Kayıt Başlat";
+        document.getElementById("csvOption").disabled = false;
+        document.getElementById("pdfOption").disabled = false;
+        document.getElementById("txtOption").disabled = false;
+        document.getElementById("excelOption").disabled = false;
+
+        // CSV
+        if (recordCSV && csvData.length > 1) {
+          const csvContent = csvData.join("\n");
+          const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.setAttribute("href", url);
+          link.setAttribute("download", fileNamePrefix + ".csv");
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+        // TXT (ASCII Tablo)
+        if (recordTXT && txtTableData.length > 1) {
+          const asciiTable = generateAsciiTable(txtTableData);
+          const blob = new Blob([asciiTable], { type: "text/plain;charset=utf-8;" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.setAttribute("href", url);
+          link.setAttribute("download", fileNamePrefix + ".txt");
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+        // PDF
+        if (recordPDF && pdfData.length > 0) {
+          const { jsPDF } = window.jspdf;
+          // A4 boyutunda landscape modunda oluşturuluyor
+          const doc = new jsPDF('l', 'mm', 'a4');
+          doc.autoTable({
+            head: [headers],
+            body: pdfData,
+            startY: 20,
+            styles: { fontSize: 7 },
+            headStyles: { fillColor: [41,128,185] },
+            theme: 'grid'
+          });
+          doc.save(fileNamePrefix + ".pdf");
+        }
+        // Excel
+        if (recordExcel && excelData.length > 1) {
+          const wb = XLSX.utils.book_new();
+          const ws = XLSX.utils.aoa_to_sheet(excelData);
+          XLSX.utils.book_append_sheet(wb, ws, "Data");
+          XLSX.writeFile(wb, fileNamePrefix + ".xlsx");
+        }
+
+        Swal.fire("Başarılı", "Kayıt durduruldu, dosyalar indiriliyor!", "success");
+      }
+    });
+  </script>
 </body>
 </html>
