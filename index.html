@@ -107,7 +107,6 @@
 </head>
 <body>
   <h1>Live Sensor Data</h1>
-
   <div class="btn-container">
     <div class="format-options">
       <label><input type="checkbox" id="csvOption" checked /> CSV</label>
@@ -115,9 +114,8 @@
       <label><input type="checkbox" id="txtOption" /> TXT</label>
       <label><input type="checkbox" id="excelOption" /> Excel</label>
     </div>
-    <button id="toggleRecordingBtn">Start Recording</button>
+    <button id="toggleRecordingBtn">Start Record</button>
   </div>
-
   <div class="container">
     <!-- Solda Voltaj 1-10 -->
     <div class="column">
@@ -133,7 +131,6 @@
       <p>Voltage 9: <span id="v9"></span></p>
       <p>Voltage 10: <span id="v10"></span></p>
     </div>
-
     <!-- Ortada Voltaj 11-20 -->
     <div class="column">
       <h2>Voltage 11-20</h2>
@@ -149,7 +146,6 @@
       <p>Voltage 20: <span id="v20"></span></p>
       <p><strong>Total Voltage:</strong> <span id="vt"></span></p>
     </div>
-
     <!-- Sağda Sıcaklıklar ve Diğer Veriler -->
     <div class="column">
       <h2>Temperature Sensors</h2>
@@ -159,15 +155,14 @@
       <p>Temperature 4: <span id="s4"></span></p>
       <p>Temperature 5: <span id="s5"></span></p>
       <p>Temperature 6: <span id="s6"></span></p>
-
       <h2>Other Sensor Values</h2>
       <p><strong>Current:</strong> <span id="a"></span></p>
       <p><strong>Speed:</strong> <span id="h"></span></p>
-      <p><strong>Remaining Energy (Wh):</strong> <span id="kE"></span></p>
-      <p><strong>Isolation:</strong> <span id="iRes"></span></p> 
+      <p><strong>Remaining Energy:</strong> <span id="kE"></span></p>
+      <p><strong>Last Data Time:</strong> <span id="ts"></span></p>
+      <p><strong>Checksum (chk):</strong> <span id="chk"></span></p>
     </div>
   </div>
-
   <script>
     // Kayıt formatı seçenekleri ve verilerin tutulacağı diziler
     let isRecording = false;
@@ -178,7 +173,6 @@
     let lastID = null;
     let fileNamePrefix = "";
     let recordCSV = false, recordPDF = false, recordTXT = false, recordExcel = false;
-
     // Başlık satırı (header)
     const headers = [
       "ID",
@@ -188,10 +182,9 @@
       "Voltage16", "Voltage17", "Voltage18", "Voltage19", "Voltage20",
       "VoltageToplam",
       "Sicaklik1", "Sicaklik2", "Sicaklik3", "Sicaklik4", "Sicaklik5", "Sicaklik6",
-      "Current", "Hiz", "RemainingEnergy(Wh)", "Isolation",
+      "Current", "Hiz", "RemainingEnergy",
       "Timestamp"
     ];
-
     // Fonksiyon: TXT dosyası için güzel görünümlü ASCII tablo oluşturma
     function generateAsciiTable(tableData) {
       const numCols = tableData[0].length;
@@ -223,13 +216,11 @@
       result += sep;
       return result;
     }
-
     // Sensor verilerini API'den çekme ve ekrana güncelleme
     async function fetchSensorData() {
       try {
         const response = await fetch('https://maveratelemetry.somee.com/api/SensorData/latest');
         const result = await response.json();
-
         // Ekranı güncelle
         document.getElementById("v1").innerText = result.v1;
         document.getElementById("v2").innerText = result.v2;
@@ -252,37 +243,62 @@
         document.getElementById("v19").innerText = result.v19;
         document.getElementById("v20").innerText = result.v20;
         document.getElementById("vt").innerText = result.vt;
-
         document.getElementById("s1").innerText = result.s1;
         document.getElementById("s2").innerText = result.s2;
         document.getElementById("s3").innerText = result.s3;
         document.getElementById("s4").innerText = result.s4;
         document.getElementById("s5").innerText = result.s5;
         document.getElementById("s6").innerText = result.s6;
-
         document.getElementById("a").innerText = result.a;
         document.getElementById("h").innerText = result.h;
         document.getElementById("kE").innerText = result.kE;
-        document.getElementById("iRes").innerText = result.iRes;
-
+        // Son verinin geldiği zaman (zaman damgası)
+        const now = new Date().toLocaleString();
+        document.getElementById("ts").innerText = now;
+        // CHK Part
+        const expectedChk = Number(result.hiz) + Number(result.remainingEnergy) + Number(result.voltageToplam);
+        const simulatedChk = expectedChk;
+        const chkValid = simulatedChk === expectedChk;
+        document.getElementById("chk").innerText =
+          Number.isNaN(expectedChk)
+            ? "-"
+            : `${simulatedChk} (${chkValid ? "OK" : "HATALI"})`;
         // Yeni bir veri geldiğinde, kayıt devam ediyorsa dizilere ekleyelim (aynı ID tekrar eklenmesin)
         if (isRecording && lastID !== result.id) {
-
           const row = [
             result.id || "",
-            result.v1, result.v2, result.v3, result.v4, result.v5,
-            result.v6, result.v7, result.v8, result.v9, result.v10,
-            result.v11, result.v12, result.v13, result.v14, result.v15,
-            result.v16, result.v17, result.v18, result.v19, result.v20,
-            result.vt, 
-            result.s1, result.s2, result.s3, result.s4, result.s5, result.s6, 
-            result.a,
-            result.h, 
-            result.kE, 
-            result.iRes,
-            result.createdAt
+            result.v1,
+            result.v2,
+            result.voltage3,
+            result.voltage4,
+            result.voltage5,
+            result.voltage6,
+            result.voltage7,
+            result.voltage8,
+            result.voltage9,
+            result.voltage10,
+            result.voltage11,
+            result.voltage12,
+            result.voltage13,
+            result.voltage14,
+            result.voltage15,
+            result.voltage16,
+            result.voltage17,
+            result.voltage18,
+            result.voltage19,
+            result.voltage20,
+            result.voltageToplam,
+            result.sicaklik_1,
+            result.sicaklik_2,
+            result.sicaklik_3,
+            result.sicaklik_4,
+            result.sicaklik_5,
+            result.sicaklik_6,
+            result.current,
+            result.hiz,
+            result.remainingEnergy,
+            now
           ];
-
           if (recordCSV) {
             csvData.push(row.map(item => item === undefined ? "" : item).join(","));
           }
@@ -301,10 +317,8 @@
         console.error("Veri çekilirken hata oluştu:", error);
       }
     }
-
     // Her saniye veriyi güncelle
     setInterval(fetchSensorData, 1000);
-
     // Kayıt başlat/durdur butonu işlemleri
     document.getElementById("toggleRecordingBtn").addEventListener("click", () => {
       if (!isRecording) {
@@ -313,22 +327,18 @@
         recordPDF = document.getElementById("pdfOption").checked;
         recordTXT = document.getElementById("txtOption").checked;
         recordExcel = document.getElementById("excelOption").checked;
-
         if (!recordCSV && !recordPDF && !recordTXT && !recordExcel) {
-          Swal.fire("Error", "Please select at least one format!", "error");
+          Swal.fire("Hata", "Lütfen en az bir format seçiniz!", "error");
           return;
         }
-
         isRecording = true;
         lastID = null; // ID kontrolünü sıfırla
-
         // Buton metnini güncelle ve format seçeneklerini devre dışı bırak
-        document.getElementById("toggleRecordingBtn").innerText = "Stop Recording";
+        document.getElementById("toggleRecordingBtn").innerText = "Kayıt Durdur";
         document.getElementById("csvOption").disabled = true;
         document.getElementById("pdfOption").disabled = true;
         document.getElementById("txtOption").disabled = true;
         document.getElementById("excelOption").disabled = true;
-
         // Dosya adı için tarih bilgisini al
         const now = new Date();
         const gun = String(now.getDate()).padStart(2, "0");
@@ -336,7 +346,6 @@
         const saat = String(now.getHours()).padStart(2, "0");
         const dakika = String(now.getMinutes()).padStart(2, "0");
         fileNamePrefix = `sensordata_${gun}_${ay}_${saat}_${dakika}`;
-
         // Seçili formatlar için başlık satırlarını ekle
         if (recordCSV) {
           csvData = [];
@@ -353,17 +362,15 @@
           excelData = [];
           excelData.push(headers);
         }
-
-        Swal.fire("Success", "Recording started!", "success");
+        Swal.fire("Başarılı", "Kayıt başlatıldı!", "success");
       } else {
         // Kayıt durduruluyor...
         isRecording = false;
-        document.getElementById("toggleRecordingBtn").innerText = "Start Recording";
+        document.getElementById("toggleRecordingBtn").innerText = "Kayıt Başlat";
         document.getElementById("csvOption").disabled = false;
         document.getElementById("pdfOption").disabled = false;
         document.getElementById("txtOption").disabled = false;
         document.getElementById("excelOption").disabled = false;
-
         // CSV
         if (recordCSV && csvData.length > 1) {
           const csvContent = csvData.join("\n");
@@ -410,7 +417,6 @@
           XLSX.utils.book_append_sheet(wb, ws, "Data");
           XLSX.writeFile(wb, fileNamePrefix + ".xlsx");
         }
-
         Swal.fire("Success", "Recording stopped, downloading files!",  "success");
       }
     });
