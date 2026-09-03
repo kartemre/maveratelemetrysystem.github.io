@@ -257,14 +257,16 @@
           ? new Date(result.createdAt).toLocaleString()
           : "-";
         document.getElementById("ts").innerText = now;
-        // CHK Part
-        const expectedChk = Number(result.hiz) + Number(result.remainingEnergy) + Number(result.voltageToplam);
-        const simulatedChk = expectedChk;
-        const chkValid = simulatedChk === expectedChk;
+        // CHK Part:
+        const expectedChk = Number(result.h) + Number(result.kE) + Number(result.vt);
+        const receivedChk = (result.chk !== undefined && result.chk !== null)
+          ? Number(result.chk)
+          : expectedChk;
+        const chkValid = receivedChk === expectedChk;
         document.getElementById("chk").innerText =
           Number.isNaN(expectedChk)
             ? "-"
-            : `${simulatedChk} (${chkValid ? "OK" : "HATALI"})`;
+            : `${receivedChk} (expected: ${expectedChk}, ${chkValid ? "true" : "false"})`;
         // Yeni bir veri geldiğinde, kayıt devam ediyorsa dizilere ekleyelim (aynı ID tekrar eklenmesin)
         if (isRecording && lastID !== result.id) {
           const row = [
