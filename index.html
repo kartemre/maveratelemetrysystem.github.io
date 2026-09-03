@@ -252,8 +252,10 @@
         document.getElementById("a").innerText = result.a;
         document.getElementById("h").innerText = result.h;
         document.getElementById("kE").innerText = result.kE;
-        // Son verinin geldiği zaman (zaman damgası)
-        const now = new Date().toLocaleString();
+        // Son verinin geldiği zaman (sunucudaki createdAt değeri)
+        const now = result.createdAt
+          ? new Date(result.createdAt).toLocaleString()
+          : "-";
         document.getElementById("ts").innerText = now;
         // CHK Part
         const expectedChk = Number(result.hiz) + Number(result.remainingEnergy) + Number(result.voltageToplam);
